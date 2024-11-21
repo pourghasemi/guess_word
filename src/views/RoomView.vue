@@ -9,7 +9,7 @@
       v-if="users.length == 2"
       :player1="users[0].id"
       :player2="users[1].id"
-      :gameId="roomId"
+      :gameId="`${roomId}`"
     />
   </div>
 </template>
@@ -25,7 +25,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { useRoute } from 'vue-router';
-import Game from '../components/Game.vue';
+import Game from '../components/GameGuess.vue';
 
 // Define a type for user
 interface User {

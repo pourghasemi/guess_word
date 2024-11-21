@@ -50,8 +50,7 @@
     </div>
   </div>
 </template>
-
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { database, auth } from '../config/firebase'
 import {
@@ -63,19 +62,24 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 
-// Define props for player1 and player2
-const props = defineProps({
-  player1: String,
-  player2: String,
-  gameId: Number,
-})
+// Define props with types
+const props = defineProps<{
+  player1: string,
+  player2: string,
+  gameId: string
+}>()
 
+type Response = "Yes" | "No" | null
+type Question = { question: string, response: Response }
+type Game = { questions: Question[], questionCount: number, selectedWord: string }
+
+// Firestore document reference
 const gameRef = doc(database, 'games', props.gameId)
-const selectedWord = ref('')
-const question = ref('')
-const game = ref(null)
-const currentUser = ref(null)
-const winner = ref('')
+const selectedWord = ref<string>('')
+const question = ref<string>('')
+const game = ref<Game | null>(null)
+const currentUser = ref<string | null>(null)
+const winner = ref<string>('')
 
 // Identify player based on props
 const isPlayer1 = ref(false)
@@ -96,14 +100,13 @@ onMounted(async () => {
   const user = auth.currentUser
   if (user) {
     currentUser.value = user.uid
-    if (user) {
-      currentUser.value = user.uid
-      isPlayer1.value = user.uid === props.player1
-      isPlayer2.value = user.uid === props.player2
-    }
+    isPlayer1.value = user.uid === props.player1
+    isPlayer2.value = user.uid === props.player2
+
     const gameSnapshot = await getDoc(gameRef)
     if (gameSnapshot.exists()) {
-      game.value = gameSnapshot.data()
+      game.value = gameSnapshot.data() as Game
+      console.log('game: ', game);
     } else {
       await setDoc(gameRef, {
         player1: props.player1,
@@ -116,14 +119,17 @@ onMounted(async () => {
   }
 
   const unsubscribe = onSnapshot(gameRef, snapshot => {
-    game.value = snapshot.data()
-    if (
-      game.value.selectedWord &&
-      game.value.questions.some(
-        q => q.response === 'Yes' && q.question === game.value.selectedWord,
-      )
-    ) {
-      winner.value = 'Player 2'
+    const data = snapshot.data()
+    if (data) {
+      game.value = data as Game
+      if (
+        game.value.selectedWord &&
+        game.value.questions.some(
+          q => q.response === 'Yes' && q.question === game.value?.selectedWord,
+        )
+      ) {
+        winner.value = 'Player 2'
+      }
     }
   })
 
@@ -133,14 +139,14 @@ onMounted(async () => {
 })
 
 const setWord = async () => {
-  if (selectedWord.value) {
+  if (selectedWord.value && game.value) {
     await updateDoc(gameRef, { selectedWord: selectedWord.value })
     selectedWord.value = ''
   }
 }
 
 const askQuestion = async () => {
-  if (question.value && game.value.questionCount < 20) {
+  if (question.value && game.value && game.value.questionCount < 20) {
     await updateDoc(gameRef, {
       questions: arrayUnion({ question: question.value, response: null }),
       questionCount: game.value.questionCount + 1,
@@ -149,11 +155,13 @@ const askQuestion = async () => {
   }
 }
 
-const respond = async (index, response) => {
-  const updatedQuestions = [...game.value.questions]
-  updatedQuestions[index].response = response
-  await updateDoc(gameRef, {
-    questions: updatedQuestions,
-  })
+const respond = async (index: number, response: Response) => {
+  if (game.value) {
+    const updatedQuestions = [...game.value.questions]
+    updatedQuestions[index].response = response
+    await updateDoc(gameRef, {
+      questions: updatedQuestions,
+    })
+  }
 }
 </script>
