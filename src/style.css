@@ -2,20 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --rotate{
+  syntax: "<angle>";
+  initial-value: 132deg;
+  inherits: false;
+}
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Comic Sans MS', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  /* color: rgba(255, 255, 255, 0.87); */
-
+  font-size: 16px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --card-height: 65vh;
+  --card-width: calc(var(--card-height) / 1.5);
 }
 body {
-  background-color: #e8e8e8;
+  background-color: #212534;
 }
 
 a {

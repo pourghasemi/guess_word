@@ -1,16 +1,34 @@
 <template>
-  <div v-if="users.length">
-    <h2>Room: {{ roomId }}</h2>
-    <ul>
-      <li v-for="user in users" :key="user.id">{{ user.name }}</li>
-    </ul>
-    <button @click="leaveRoom">leave</button>
-    <Game
-      v-if="users.length == 2"
-      :player1="users[0].id"
-      :player2="users[1].id"
-      :gameId="`${roomId}`"
-    />
+  <div class="min-h-screen	text-white">
+    <span @click="leaveRoom" class="mx-2 cursor-pointer text-red-500 absolute bottom-0 right-0 m-8 p-4 hover:bg-red-700 hover:text-white rounded">leave room</span>
+
+    <div v-if="users.length">
+      <h2>Room: {{ roomId }}</h2>
+      <p v-if="users.length < 2">Waiting for another player to join...</p>
+      <div class="w-screen  flex h-screen">
+        <div class="flex-1 h-full">
+          
+<videoCall/>
+
+        </div>
+        <div class="flex-1 bg-gray-500 h-full"> <template v-if="users.length == 2">
+          <!-- <template> -->
+            <div v-if="player1 === null">
+              <h2 class="text-xl py-10">Who want to start?</h2>
+              <button  @click="player1 = users[0]; player2 = users[1]; start='true'" class="mx-2">{{ users[0].name }}</button>
+              <button @click="player1 = users[1]; player2 = users[0]; start='true'" class="mx-2">{{ users[1].name }}</button>
+            </div>
+            <Game
+              :player1="player1?.id || ''"
+              :player2="player2?.id || ''"
+              :gameId="roomId"
+              @resetGame="resetGame"
+            />
+          </template>
+        </div>
+      </div>
+     
+    </div>
   </div>
 </template>
 
@@ -26,7 +44,7 @@ import {
 } from 'firebase/firestore';
 import { useRoute } from 'vue-router';
 import Game from '../components/GameGuess.vue';
-
+import videoCall from '../components/videoCall.vue';
 // Define a type for user
 interface User {
   id: string;
@@ -36,6 +54,9 @@ interface User {
 const route = useRoute();
 const roomId = route.params.id as string; // Ensure roomId is a string
 const users = ref<User[]>([]); // Explicitly type the users ref
+const player1= ref<User | null>(null);
+const player2= ref<User | null>(null);
+const start= ref<string | null>(null);
 
 async function joinRoom(userId: string, userName: string) {
   const roomRef = doc(database, 'rooms', roomId);
@@ -43,6 +64,18 @@ async function joinRoom(userId: string, userName: string) {
     name: userName,
   });
 }
+
+function resetGame({val1, val2}: {val1: string | null, val2: string | null}){
+  debugger;
+  if(val1 !== null){
+    player1.value = users.value.filter(user => user.id === val1)[0];
+    player2.value = users.value.filter(user => user.id === val2)[0];
+  }else{
+    player1.value = null;
+    player2.value = null;
+    start.value = null
+  }
+} 
 
 // Function to leave the room
 async function leaveRoom() {
