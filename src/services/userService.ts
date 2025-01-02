@@ -6,8 +6,6 @@ export const updateProfile = async (
   name: string,
   email: string,
 ) => {
-  console.log(name, userId)
-  debugger
   try {
     await setDoc(doc(database, 'users', userId), {
       name: name,
@@ -23,7 +21,6 @@ export const updateProfile = async (
 export const fetchUserById = async (userId: string) => {
   const userDocRef = doc(database, 'users', userId)
   const userDoc = await getDoc(userDocRef)
-  debugger
 
   if (userDoc.exists()) {
     console.log('User data:', userDoc.data())

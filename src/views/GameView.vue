@@ -1,15 +1,5 @@
 <template>
   <div v-if="user" class="h-screen p-8 main">
-    <!-- <button @click="createRoom">Create a New Room</button>
-    <span class="block my-10">OR</span>
-    <div>
-      <input
-        v-model="roomId"
-        placeholder="Enter Room ID"
-        class="block mx-auto my-4"
-      />
-      <button @click="joinRoom" class="inline-block">Join Room</button>
-    </div> -->
     <div class="card" @click="createRoom">
       Create a New Room
     </div>
@@ -37,7 +27,6 @@ import { User } from '../types/user'
 import ModalRoom from '../components/ModalRoom.vue'
 
 const user = ref<User | null>()
-const roomId = ref('')
 const router = useRouter()
 const showModal = ref(false);
 
@@ -66,7 +55,6 @@ async function generateUniqueRoomId() {
 const createRoom = async () => {
   try {
     const customRoomId = await generateUniqueRoomId()
-    console.log(customRoomId)
     await addDoc(collection(database, 'rooms'), {
       roomId: customRoomId, // Store the custom room ID in the document
       createdAt: serverTimestamp(),

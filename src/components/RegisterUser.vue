@@ -143,8 +143,6 @@ const register = async () => {
 }
 
 onAuthStateChanged(auth, user => {
-  console.log(user)
-  debugger
   if (user) {
     if (userAction.value === 'register') {
       updateProfile(user, {
