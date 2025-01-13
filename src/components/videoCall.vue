@@ -66,7 +66,6 @@ const joinCall = async () => {
 
   peerConnection.value = new RTCPeerConnection(servers);
   peerConnection.value.ontrack = (event) => { 
-    debugger;
     remoteVideo.value.srcObject = event.streams[0];
   };
 

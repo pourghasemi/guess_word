@@ -1,62 +1,49 @@
 <template>
   <div v-if="user" class="h-screen p-8 main">
-    <div class="card" @click="createRoom">
-      Create a New Room
-    </div>
-    <div class="card" @click="joinRoom">
-      Join a Room
-    </div>
-    <ModalRoom v-if="showModal" @closeModal="joinRoom"/>
+    <Card title="Create a New Room" @clickEvent="createRoom"/>
+    <Card title="Join a Room" @clickEvent="modalJoinRoom"/>
+    <ModalRoom v-if="showModal" @closeModal="modalJoinRoom"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { database } from '../config/firebase'
+import { ref, onMounted } from 'vue'
+import { database, auth } from '../config/firebase'
 import {
-  collection,
-  getDocs,
-  query,
-  where,
-  addDoc,
+  doc,
+  getDoc,
+  setDoc,
   serverTimestamp,
 } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
-import { auth } from '../config/firebase'
 import { User } from '../types/user'
 import ModalRoom from '../components/ModalRoom.vue'
+import Card from '../components/Card.vue'
 
 const user = ref<User | null>()
 const router = useRouter()
-const showModal = ref(false);
+const showModal = ref<boolean>(false);
 
-async function generateUniqueRoomId() {
-  let roomId
+async function generateUniqueRoomId(): Promise<string> {
+  let roomId = '';
   let isUnique = false
-
   while (!isUnique) {
     // Generate a random 4-digit number
     roomId = Math.floor(1000 + Math.random() * 9000).toString()
-
     // Check if this roomId already exists
-    const q = query(
-      collection(database, 'rooms'),
-      where('roomId', '==', roomId),
-    )
-    const querySnapshot = await getDocs(q)
-    if (querySnapshot.empty) {
-      isUnique = true
+    const roomDoc = doc(database, 'rooms', roomId);
+    const docSnapshot = await getDoc(roomDoc);
+    if (!docSnapshot.exists()) {
+      isUnique = true;
     }
   }
-
   return roomId
 }
 
 const createRoom = async () => {
   try {
-    const customRoomId = await generateUniqueRoomId()
-    await addDoc(collection(database, 'rooms'), {
-      roomId: customRoomId, // Store the custom room ID in the document
+    const customRoomId: string = await generateUniqueRoomId()
+    await setDoc(doc(database, 'rooms', customRoomId), {
       createdAt: serverTimestamp(),
       createdBy: user.value?.uid,
     })
@@ -66,24 +53,8 @@ const createRoom = async () => {
   }
 }
 
-const joinRoom = async () => {
+const modalJoinRoom = async () => {
   showModal.value = !showModal.value;
-  // if (roomId.value) {
-  //   // Query for the room using the custom roomId field
-  //   const q = query(
-  //     collection(database, 'rooms'),
-  //     where('roomId', '==', roomId.value),
-  //   )
-  //   const querySnapshot = await getDocs(q)
-
-  //   if (!querySnapshot.empty) {
-  //     // Assume roomId is unique, you can refine this logic if needed
-  //     const roomDoc = querySnapshot.docs[0]
-  //     router.push(`/room/${roomDoc.data().roomId}`)
-  //   } else {
-  //     alert('Room not found!')
-  //   }
-  // }
 }
 
 const fetchUser = async () => {
@@ -97,61 +68,7 @@ const fetchUser = async () => {
     }
   })
 }
-fetchUser()
+onMounted(() => {
+  fetchUser()
+});
 </script>
-
-<style scoped>
-.card {
-  background: #191c29;
-  width: var(--card-width);
-  height: var(--card-height);
-  padding: 3px;
-  position: relative;
-  border-radius: 6px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  display: inline-flex;
-  font-size: 1.5em;
-  color: rgb(88 199 250 / 100%);
-  cursor: pointer;
-  transition: color 1s;
-  margin: 30px;
-}
-
-.card::before {
-  content: "";
-  width: 104%;
-  height: 102%;
-  border-radius: 8px;
-  background-image: linear-gradient(var(--rotate), #5ddcff, #3c67e3 43%, #4e00c2);
-  position: absolute;
-  z-index: -1;
-  top: -1%;
-  left: -2%;
-  animation: spin 2.5s linear infinite;
-}
-
-.card::after {
-  position: absolute;
-  content: "";
-  top: calc(var(--card-height) / 6);
-  left: 0;
-  right: 0;
-  z-index: -1;
-  height: 100%;
-  width: 100%;
-  margin: 0 auto;
-  transform: scale(0.8);
-  filter: blur(calc(var(--card-height) / 6));
-  background-image: linear-gradient(var(--rotate), #5ddcff, #3c67e3 43%, #4e00c2);
-  opacity: 1;
-  transition: opacity 0.5s;
-  animation: spin 2.5s linear infinite;
-}
-
-@keyframes spin {
-  0% { --rotate: 0deg; }
-  100% { --rotate: 360deg; }
-}
-</style>

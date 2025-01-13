@@ -1,6 +1,6 @@
 <template>
   <div class="text-white">
-    <span @click="leaveRoom" class="mx-2 cursor-pointer text-red-500 absolute bottom-0 right-0 m-8 p-4 hover:bg-red-700 hover:text-white rounded">leave room</span>
+    <button @click="leaveRoom" class="mx-2 cursor-pointer text-red-500 absolute bottom-0 right-0 m-8 p-4 bg-transparent border-0 hover:text-black hover:bg-blue-500 rounded">leave room</button>
 
     <div v-if="users.length" class="border-double border-8 border-black bg-white m-auto mt-4 w-11/12 h-[calc(100vh-100px)] text-black">
       <h2 v-if="users.length < 2" class="pt-8">Room number: {{ roomId }}</h2>
@@ -14,41 +14,9 @@
           Waiting for another player to join
         </div>
        </div>
-      <div>
-        <!-- <div class="flex-1 h-full">
-          
-        <videoCall/>
-
-        </div> -->
-        <div> <template v-if="users.length == 2">
-          <!-- <template> -->
-            <div v-if="player1 === null">
-              <h2 class="text-xl py-10">Who want to start?</h2>
-              <button 
-                @click="player1 = users[0]; player2 = users[1]; start='true'"
-                class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                  {{ users[0].name }}
-                </span>
-              </button>
-              <button 
-                @click="player1 = users[1]; player2 = users[0]; start='true'"
-                class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                  {{ users[1].name }}
-                </span>
-              </button>
-            </div>
-            <Game
-              :player1="player1?.id || ''"
-              :player2="player2?.id || ''"
-              :gameId="roomId"
-              @resetGame="resetGame"
-            />
-          </template>
-        </div>
+       <div v-if="users.length === 2">
+        <Game :users="users" :roomId="roomId"/>
       </div>
-     
     </div>
   </div>
 </template>
@@ -64,41 +32,24 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { useRoute, useRouter } from 'vue-router';
-import Game from '../components/GameGuess.vue';
-// import videoCall from '../components/videoCall.vue';
-// Define a type for user
-interface User {
-  id: string;
-  name: string;
-}
+import { Player } from '../types/game.ts';
+import Game from '../components/Game.vue';
+
+
 
 const route = useRoute();
 const router = useRouter();
-const roomId = route.params.id as string; // Ensure roomId is a string
-const users = ref<User[]>([]); // Explicitly type the users ref
-const player1= ref<User | null>(null);
-const player2= ref<User | null>(null);
-const start= ref<string | null>(null);
+const roomId = route.params.id as string;
+const users = ref<Player[]>([]);
+const usersRef = collection(database, 'rooms', roomId, 'users');
 
-async function joinRoom(userId: string, userName: string) {
+async function joinRoom(userId: string, userName: string): Promise<void> {
   const roomRef = doc(database, 'rooms', roomId);
   await setDoc(doc(roomRef, 'users', userId), {
     name: userName,
   });
 }
 
-function resetGame({val1, val2}: {val1: string | null, val2: string | null}){
-  if(val1 !== null){
-    player1.value = users.value.filter(user => user.id === val1)[0];
-    player2.value = users.value.filter(user => user.id === val2)[0];
-  }else{
-    player1.value = null;
-    player2.value = null;
-    start.value = null
-  }
-} 
-
-// Function to leave the room
 async function leaveRoom() {
   try {
     const currentUser = auth.currentUser;
@@ -114,16 +65,14 @@ async function leaveRoom() {
 }
 
 // Listen for users in the room
-const usersRef = collection(database, 'rooms', roomId, 'users');
-
 onSnapshot(usersRef, snapshot => {
-  users.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+  users.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
 });
 
 onMounted(() => {
   const unsubscribeAuth = auth.onAuthStateChanged(user => {
     if (user) {
-      joinRoom(user.uid, user.displayName || 'Anonymous'); // Handle displayName possibly being null
+      joinRoom(user.uid, user.displayName || 'Anonymous');
     }
   });
 

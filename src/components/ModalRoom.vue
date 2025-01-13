@@ -10,7 +10,7 @@
               required
               v-model="roomId"
               @input="validateInput"
-              :class="{'border-red-500': !isValid && roomIdTouched}"
+              :class="{'border-red-500': !isValid}"
               placeholder="Enter Room ID"
               class="block mx-auto my-4 p-4 bg-neutral-900/100 w-full rounded text-white bold text-xl"
             />
@@ -33,21 +33,18 @@
   import { useRouter } from 'vue-router'
   import { database } from '../config/firebase'
   import {
-    collection,
-    getDocs,
-    query,
-    where,
+    getDoc,
+    doc,
   } from 'firebase/firestore'
   
   const emit = defineEmits(['closeModal']);
+  const router = useRouter();
+
   const roomId = ref('')
   const isValid = ref(true)
-  const roomIdTouched = ref(false)
   const showMessage = ref(false)
-  const router = useRouter();
   
   const validateInput = () => {
-    roomIdTouched.value = true;
     isValid.value = roomId.value.trim() !== '';
   }
   
@@ -57,17 +54,13 @@
       return; // Prevent joining if input is invalid
     }
   
+    const roomDoc = doc(database, 'rooms', roomId.value);
+    const docSnapshot = await getDoc(roomDoc);
     // Query for the room using the custom roomId field
-    const q = query(
-      collection(database, 'rooms'),
-      where('roomId', '==', roomId.value),
-    );
-    const querySnapshot = await getDocs(q);
   
-    if (!querySnapshot.empty) {
+    if (docSnapshot.exists()) {
       // Assume roomId is unique, you can refine this logic if needed
-      const roomDoc = querySnapshot.docs[0];
-      router.push(`/room/${roomDoc.data().roomId}`);
+      router.push(`/room/${roomId.value}`);
     } else {
       showMessage.value = true;
       setTimeout(() => {

@@ -6,12 +6,7 @@
       <div
         class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl"
       >
-        <a href="https://flowbite.com" class="flex items-center">
-          <span
-            class="self-center text-xl font-semibold whitespace-nowrap text-white"
-            >Guess word</span
-          >
-        </a>
+          <router-link to="/" class="flex items-center self-center text-xl font-semibold whitespace-nowrap text-white hover:text-white">Guess word</router-link>
         <div class="flex items-center lg:order-2 text-white">
           <span
             v-if="user?.email"
