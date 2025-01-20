@@ -26,7 +26,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '../config/firebase'
-import { User } from '../types/user'
+import type { User } from '../types/user'
 
 const router = useRouter()
 const user = ref<User | null>()

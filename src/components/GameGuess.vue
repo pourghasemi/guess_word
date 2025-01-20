@@ -46,7 +46,7 @@ import AskQuestionForm from './AskQuestionForm.vue'
 import AnswerTheQuestionsForm from './AnswerTheQuestionsForm.vue'
 import SelectWordForm from './SelectWordForm.vue'
 import GameOver from './GameOver.vue'
-import { User, GameType} from '../types/types'
+import type { User, GameType} from '../types/types'
 
 
 // Define props with types

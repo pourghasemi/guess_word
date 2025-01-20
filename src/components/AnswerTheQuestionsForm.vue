@@ -57,7 +57,7 @@ import { ref } from 'vue';
     doc,
     updateDoc,
   } from 'firebase/firestore'
-import { GameType, ResponseType } from '../types/types'
+import type { GameType, ResponseType } from '../types/types'
 
  const props = defineProps<{
     game: GameType | null,

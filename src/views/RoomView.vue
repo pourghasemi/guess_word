@@ -32,7 +32,7 @@ import {
   deleteDoc,
 } from 'firebase/firestore';
 import { useRoute, useRouter } from 'vue-router';
-import { Player } from '../types/game.ts';
+import type { Player } from '../types/game.ts';
 import Game from '../components/Game.vue';
 
 

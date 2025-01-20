@@ -78,7 +78,7 @@
     updateDoc,
     arrayUnion,
   } from 'firebase/firestore'
-import { GameType } from '../types/types';
+import type { GameType } from '../types/types';
 
   const props = defineProps<{
     game: GameType | null,

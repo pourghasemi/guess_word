@@ -16,7 +16,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
-import { User } from '../types/user'
+import type { User } from '../types/user'
 import ModalRoom from '../components/ModalRoom.vue'
 import Card from '../components/Card.vue'
 

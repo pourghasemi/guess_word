@@ -18,7 +18,7 @@
 import { ref } from 'vue';
 import GameGuess from '../components/GameGuess.vue';
 import Player from './Player.vue';
-import { User } from '../types/types';
+import type { User } from '../types/types';
 
 const props = defineProps<{
     users: Array<User>,

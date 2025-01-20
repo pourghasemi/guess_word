@@ -36,7 +36,7 @@ import { database } from '../config/firebase'
     updateDoc,
   } from 'firebase/firestore'
 import WarningAlert from './WarningAlert.vue'
-import { GameType } from '../types/types'
+import type { GameType } from '../types/types'
 
 const categories = [
   {
